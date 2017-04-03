@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
@@ -44,6 +45,28 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
 
     private long UPDATE_INTERVAL = 10 * 1000;  /* 10 secs */
     private long FASTEST_INTERVAL = 2000; /* 2 sec */
+    private Integer count;
+
+    public  class DreamBeforeDrawing extends AsyncTask<Integer, Integer, Integer> {
+     //   private Integer myCount;
+
+        @Override
+        protected Integer doInBackground(Integer... params) {
+            //myCount = params[0];
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+
+            }
+            return params[0];
+        }
+
+        @Override
+        protected void onPostExecute(Integer ans) {
+           // Log.v("count", String.valueOf(count));
+            drawPolygon(ans);
+        }
+    }
 
 
     @Override
@@ -65,7 +88,12 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                 .build();
 
         initListener();
-        drawPolygon(new LatLng(60, 29.7657));
+       // drawPolygon(new LatLng(60, 29.7657));
+       // drawPolygon(1);
+        count = 0;
+        Log.v("done", "done");
+        new DreamBeforeDrawing().execute(count, 1);
+       // f();
     }
 
     private void initListener() {
@@ -95,10 +123,10 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     public void onConnected(Bundle bundle) {
         //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (LocationListener) this);
         mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        while (mCurrentLocation == null) {
+       /* while (mCurrentLocation == null) {
          //   LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (LocationListener) this);
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        }
+        }*/
        /* if (mCurrentLocation != null) {
           //  mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
             //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
@@ -111,14 +139,17 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                 .FusedLocationApi
                 .getLastLocation(mGoogleApiClient);*/
         initCamera(mCurrentLocation);
+        //f();
     }
 
-    private void drawPolygon (LatLng startingLocation) {
+    private synchronized void drawPolygon (int color) { //location!
+        count += 10;
         Vector<Building> buildings;
-        buildings = mCommunication.getBuildings(new LatLng(0, 0), new LatLng(0, 0), 0);
+        buildings = mCommunication.getBuildings(new LatLng(0, 0), new LatLng(0, 0), color); // zero
         for (int i = 0; i < buildings.size(); ++i){
             getMap().addPolygon(buildings.elementAt(i).getPolygon());
         }
+        new DreamBeforeDrawing().execute(count, 0);
         //getMap().addPolygon( options );
     }
 
@@ -164,7 +195,6 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         Log.v("Long", String.valueOf(lastLocation.getLongitude()));
         Log.v("Lat", String.valueOf(lastLocation.getLatitude()));
 
-      //  }
     }
 
     protected void startLocationUpdates() {
@@ -182,5 +212,6 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     public boolean onMarkerClick(Marker marker) {
         return false;
     }
+
 
 }

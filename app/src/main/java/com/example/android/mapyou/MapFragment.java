@@ -45,6 +45,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
     private Communication mCommunication;
+    private Communication mCommunicationSendLocation;
     private Location mLastLocation;
 
     private String FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
@@ -57,6 +58,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         setHasOptionsMenu(true);
 
         mCommunication = new Communication();
+        mCommunicationSendLocation = new Communication();
         mGoogleApiClient = new GoogleApiClient.Builder(getContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -94,18 +96,22 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     @Override
     public void onConnected(Bundle bundle) {
 
-        while (getContext().checkCallingOrSelfPermission(FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)  {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
+        for (int i = 0; i < 10 && getContext().checkCallingOrSelfPermission(FINE_LOCATION) != PackageManager.PERMISSION_GRANTED; ++i) {
+            {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
 
+                }
+                Log.v("MapFragment", "LocationPermissionError");
             }
-            Log.v("MapFragment", "LocationPermissionError");
         }
         mCurrentLocation = LocationServices
                 .FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
+
         initCamera(mCurrentLocation);
+        sendLocation();
     }
 
     private synchronized void drawPolygon(LatLng point1, LatLng point2) {
@@ -154,10 +160,12 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
 
     }
 
-    private void upDateLocation() {
+    private void sendLocation() {
         mCurrentLocation = LocationServices
                 .FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
+        mCommunicationSendLocation.setMyLocation(mCurrentLocation);
+        new UpdateLocationDream().execute(0, 0);
     }
 
     @Override
@@ -180,8 +188,26 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
 
         @Override
         protected void onPostExecute(Integer ans) {
-            upDateLocation();
             drawPolygon(new LatLng(59.808263, 29.536778), new LatLng(60.109892, 30.723302)); //Peterhof: (59.870843, 29.765774) (59.887411, 29.883190)
+        }
+    }
+
+    public class UpdateLocationDream extends AsyncTask<Integer, Integer, Integer> {
+
+        @Override
+        protected Integer doInBackground(Integer... params) {
+            try {
+                Thread.sleep(5000);
+
+            } catch (InterruptedException e) {
+
+            }
+            return params[0];
+        }
+
+        @Override
+        protected void onPostExecute(Integer ans) {
+            sendLocation();
         }
     }
 }

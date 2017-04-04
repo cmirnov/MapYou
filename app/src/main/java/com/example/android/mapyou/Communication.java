@@ -1,5 +1,8 @@
 package com.example.android.mapyou;
 
+import android.location.Location;
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.Vector;
@@ -10,8 +13,10 @@ import java.util.Vector;
 
 public class Communication {
 
-    public void setMyLocation() {
-
+    public void setMyLocation(Location location) {
+        if (location != null) {
+            Log.v("Communication", String.valueOf(location.getLatitude()));
+        }
     }
 
     public Vector<Building> getBuildings(LatLng point1, LatLng point2, int bufferSize) {

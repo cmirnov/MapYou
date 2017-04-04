@@ -8,7 +8,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 
 import java.util.Vector;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
+//import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 /**
  * Created by kirill on 30.03.17.

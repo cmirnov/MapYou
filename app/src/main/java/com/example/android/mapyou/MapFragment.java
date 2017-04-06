@@ -33,10 +33,6 @@ import com.google.android.gms.maps.model.PolygonOptions;
 
 import java.util.Vector;
 
-//import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
-import static java.security.AccessController.getContext;
-
 
 public class MapFragment extends SupportMapFragment implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener,
@@ -47,16 +43,14 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     private Communication mCommunication;
     private Communication mCommunicationSendLocation;
     private Location mLastLocation;
+    private Vector<Building> buildings;
 
     private String FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
-    private String COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         setHasOptionsMenu(true);
-
         mCommunication = new Communication();
         mCommunicationSendLocation = new Communication();
         mGoogleApiClient = new GoogleApiClient.Builder(getContext())
@@ -95,7 +89,6 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
-
         for (int i = 0; i < 10 && getContext().checkCallingOrSelfPermission(FINE_LOCATION) != PackageManager.PERMISSION_GRANTED; ++i) {
             {
                 try {
@@ -110,15 +103,23 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                 .FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
 
-        initCamera(mCurrentLocation);
+        if (mCurrentLocation != null) {
+            initCamera(mCurrentLocation);
+        } else {
+            Location shitLocation = new Location("");
+            shitLocation.setLatitude(0);
+            shitLocation.setLongitude(0);
+            initCamera(shitLocation);
+        }
         sendLocation();
     }
 
-    private synchronized void drawPolygon(LatLng point1, LatLng point2) {
-        Vector<Building> buildings;
-        buildings = mCommunication.getBuildings(point1, point2, 0);
-        for (int i = 0; i < buildings.size(); ++i) {
-            getMap().addPolygon(buildings.elementAt(i).getPolygon());
+    private void drawPolygon(LatLng point1, LatLng point2) {
+        if (buildings != null) {
+            Log.v("buildings", "are drawing");
+            for (int i = 0; i < buildings.size(); ++i) {
+                getMap().addPolygon(buildings.elementAt(i).getPolygon());
+            }
         }
         new DreamBeforeDrawing().execute(0, 0);
     }
@@ -164,7 +165,6 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         mCurrentLocation = LocationServices
                 .FusedLocationApi
                 .getLastLocation(mGoogleApiClient);
-        mCommunicationSendLocation.setMyLocation(mCurrentLocation);
         new UpdateLocationDream().execute(0, 0);
     }
 
@@ -178,6 +178,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         @Override
         protected Integer doInBackground(Integer... params) {
             try {
+                buildings = mCommunication.getBuildings(new LatLng(9, 0), new LatLng(9, 9), 0);
                 Thread.sleep(5000);
 
             } catch (InterruptedException e) {
@@ -197,10 +198,11 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         @Override
         protected Integer doInBackground(Integer... params) {
             try {
-                Thread.sleep(5000);
+                Thread.sleep(500);
+                mCommunicationSendLocation.setMyLocation(mCurrentLocation);
 
             } catch (InterruptedException e) {
-
+                Log.v("error", "update");
             }
             return params[0];
         }

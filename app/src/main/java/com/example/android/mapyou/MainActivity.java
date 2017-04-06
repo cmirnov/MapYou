@@ -43,5 +43,19 @@ public class MainActivity extends AppCompatActivity{
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     0);
         }
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.ACCESS_NETWORK_STATE)) {
+        } else {
+
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_NETWORK_STATE},
+                    0);
+        }
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.INTERNET)) {
+        } else {
+
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET},
+                    0);
+        }
     }
 }

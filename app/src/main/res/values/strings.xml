@@ -1,6 +1,8 @@
 <resources>
-    <string name="app_name">MapYou</string>
-    <string name="no_location_detected">
-        No location detected. Make sure location is enabled on the device.
-    </string>
+    <string name="app_name">MapYou2.0</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="submit">submit</string>
+    <string name="action_settings">Settings</string>
 </resources>

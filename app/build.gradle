@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25 // 25
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "com.example.android.mapyou"
-        minSdkVersion 9 //9 // 15
+        applicationId "com.example.android.mapyou20"
+        minSdkVersion 15
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -24,24 +24,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-   /* compile 'com.android.support:appcompat-v7:23.0.1'
-    compile 'com.google.android.gms:play-services-maps:8.4.0'
-    compile 'com.google.android.gms:play-services-location:8.4.0'*/
-                compile 'com.android.support:appcompat-v7:25.3.1' // 25.3.1 - last
-   // compile 'com.google.android.gms:play-services-maps:10.2.1'
-   // compile 'com.google.android.gms:play-services-location:10.2.1'
-
-   // compile 'com.android.support:appcompat-v7:25.0.1'
-
-    //compile 'com.google.android.gms:play-services-maps:7.8.0'
-    //compile 'com.google.android.gms:play-services-location:7.8.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
     compile 'com.google.android.gms:play-services:8.1.0'
-
-
-    //compile 'com.android.support:appcompat-v7:23.0.1'
-
-   // compile 'com.google.android.gms:play-services:8.1.0' //location
-  //  compile 'com.google.android.gms:play-services:8.1.0'
-    //compile 'com.google.android.gms:play-services-location:10.2.1'
     testCompile 'junit:junit:4.12'
 }

@@ -1,17 +1,14 @@
 package com.example.android.mapyou;
 
-import android.graphics.Point;
 import android.location.Location;
-import android.os.AsyncTask;
-import android.text.TextUtils;
 import android.util.Log;
 
+import com.example.android.mapyou.Building;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,10 +19,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Vector;
-import java.util.concurrent.ExecutionException;
-
-import static android.R.attr.data;
-import static android.support.v7.widget.AppCompatDrawableManager.get;
 
 /**
  * Created by kirill on 30.03.17.

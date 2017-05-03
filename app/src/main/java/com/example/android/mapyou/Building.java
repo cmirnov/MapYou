@@ -1,7 +1,6 @@
 package com.example.android.mapyou;
 
 import android.graphics.Color;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolygonOptions;

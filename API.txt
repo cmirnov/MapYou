@@ -1,14 +1,25 @@
+**************************
+Common API request format 
+
+
+domain/api?method=<method name>&some_field1=<field1 value>&....&some_fieldN=<fieldN value>&security=<hash>
+--hash=SHA1(<method name> + <field1 value> + ... + <fieldN value> + SECRET_SALT)
+
+
+*************************
+
+
 1) update_geo_position 
 
 Client tells the server side your geo position, server can response "ok" or "error" 	  
 
 REQUEST:
-	1. id=<user id>
-	2. method=update_geo_position
+	1. method=update_geo_position
+	2. id=<user id>
 	3. latitude=<X-axis>
 	4. longitude=<Y-axis>
 	Example:		
-	domain/api?id=a16d723geqf&method=update_geo_position&latitude=59.856954&longitude=29.874587
+	domain/api?id=a16d723geqf&method=update_geo_position&latitude=59.856954&longitude=29.874587&security=<...>
 RESPONSE:
 	JSON encoded
 	1. status: ok | error
@@ -34,7 +45,7 @@ REQUEST:
 	4. point2_latitude=<X-axis>
 	5. point2_longitude=<Y-axis>
 	Example:		
-	domain/api?method=get_buildings_at_polygon&point1_latitude=59.856954&point1_longitude=29.874587&point2_latitude=60.856912&point2_longitude=30.874586
+	domain/api?method=get_buildings_at_polygon&point1_latitude=59.856954&point1_longitude=29.874587&point2_latitude=60.856912&point2_longitude=30.874586&security=<...>
 
 RESPONSE:
 	1. id - uniq identificator of build

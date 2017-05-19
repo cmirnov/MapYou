@@ -1,36 +1,43 @@
 package com.example.android.mapyou;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.android.mapyou20.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolygonOptions;
+import com.vk.sdk.api.VKApi;
+import com.vk.sdk.api.VKApiConst;
+import com.vk.sdk.api.VKError;
+import com.vk.sdk.api.VKParameters;
+import com.vk.sdk.api.VKRequest;
+import com.vk.sdk.api.VKResponse;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 
 public class MapFragment extends SupportMapFragment implements GoogleApiClient.ConnectionCallbacks,
@@ -40,9 +47,13 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
     private Communication mCommunication;
+    private Communication mCommunicationGetFriends;
+    private Communication mCommunicationGetPhoto;
     private Communication mCommunicationSendLocation;
     private Location mLastLocation;
     private Vector<Building> buildings;
+    private long mId = -1;
+    private Vector<Friend> friends;
 
     private String FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
 
@@ -50,7 +61,10 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setHasOptionsMenu(true);
+        friends = new Vector<>();
         mCommunication = new Communication();
+        mCommunicationGetFriends = new Communication();
+        mCommunicationGetPhoto = new Communication();
         mCommunicationSendLocation = new Communication();
         mGoogleApiClient = new GoogleApiClient.Builder(getContext())
                 .addConnectionCallbacks(this)
@@ -58,8 +72,10 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                 .addApi(LocationServices.API)
                 .build();
 
+        setId();
         initListener();
         new DreamBeforeDrawing().execute(0, 0);
+        new UpdateFriendDream().execute(0, 0);
     }
 
 
@@ -90,11 +106,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
     public void onConnected(Bundle bundle) {
         for (int i = 0; i < 10 && getContext().checkCallingOrSelfPermission(FINE_LOCATION) != PackageManager.PERMISSION_GRANTED; ++i) {
             {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
 
-                }
                 Log.v("MapFragment", "LocationPermissionError");
             }
         }
@@ -121,6 +133,25 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
             }
         }
         new DreamBeforeDrawing().execute(0, 0);
+    }
+
+    private void drawMarkers() {
+        try {
+            if (friends != null) {
+                for (int i = 0; i < friends.size(); ++i) {
+                    if (friends.get(i).getOnline()) {
+                        MarkerOptions options = new MarkerOptions().position(friends.get(i).getLocation());
+                        options.title(friends.get(i).getName());
+
+                        options.icon(BitmapDescriptorFactory.fromBitmap(friends.get(i).getImage()));
+                        getMap().addMarker(options);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.v("", "");
+        }
+        new UpdateFriendDream().execute(0, 0);
     }
 
     private void initCamera(Location location) {
@@ -150,6 +181,34 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
 
     }
 
+    private void setId() {
+        final VKRequest request = VKApi.users().get(VKParameters.from(VKApiConst.FIELDS,
+                "id"));
+        request.secure = false;
+        request.useSystemLanguage = false;
+        request.executeWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                JSONObject object = response.json;
+                try {
+                    JSONArray array = object.getJSONArray("response");
+                    JSONObject user = array.getJSONObject(0);
+                    mId = user.getLong("id");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            @Override
+            public void onError(VKError error) {
+            }
+            @Override
+            public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
+            }
+        });
+        return;
+    }
+
     @Override
     public void onMapClick(LatLng latLng) {
 
@@ -172,7 +231,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         return false;
     }
 
-    public class DreamBeforeDrawing extends AsyncTask<Integer, Integer, Integer> {
+    private class DreamBeforeDrawing extends AsyncTask<Integer, Integer, Integer> {
 
         @Override
         protected Integer doInBackground(Integer... params) {
@@ -192,13 +251,15 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         }
     }
 
-    public class UpdateLocationDream extends AsyncTask<Integer, Integer, Integer> {
+    private class UpdateLocationDream extends AsyncTask<Integer, Integer, Integer> {
 
         @Override
         protected Integer doInBackground(Integer... params) {
             try {
-                Thread.sleep(500);
-                mCommunicationSendLocation.setMyLocation(mCurrentLocation);
+                Thread.sleep(5000);
+                if (mId != -1) {
+                    mCommunicationSendLocation.setMyLocation(mCurrentLocation, mId);
+                }
 
             } catch (InterruptedException e) {
                 Log.v("error", "update");
@@ -211,4 +272,52 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
             sendLocation();
         }
     }
+
+    private class UpdateFriendDream extends AsyncTask<Object, Object, Void> {
+
+        @Override
+        protected Void doInBackground(Object... params) {
+            try {
+                Thread.sleep(5000);
+                VKRequest request = VKApi.friends().get(VKParameters.from(VKApiConst.FIELDS,
+                        "id, photo_50"));
+                request.secure = false;
+                request.useSystemLanguage = false;
+                request.executeWithListener(new VKRequest.VKRequestListener() {
+                    @Override
+                    public void onComplete(VKResponse response) {
+                        MyCallable callable = new MyCallable(response);
+                        FutureTask<Vector<Friend>> futureTask = new FutureTask<Vector<Friend>>(callable);
+                        ExecutorService executor = Executors.newFixedThreadPool(2);
+                        executor.execute(futureTask);
+                        while (!futureTask.isDone()) {}
+                        try {
+                            friends = futureTask.get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                        return;
+                    }
+                    @Override
+                    public void onError(VKError error) { }
+                    @Override
+                    public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) { }
+                });
+
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            drawMarkers();
+        }
+    }
+
 }

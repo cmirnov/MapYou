@@ -26,6 +26,12 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
-    compile 'com.google.android.gms:play-services:8.1.0'
+    compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'com.google.android.gms:play-services-location:8.4.0'
+
+    //9.2.0
+
     testCompile 'junit:junit:4.12'
+    compile 'com.vk:androidsdk:1.6.5'
+    //compile project(':vksdk_library')
 }

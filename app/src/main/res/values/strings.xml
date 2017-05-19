@@ -1,8 +1,10 @@
 <resources>
-    <string name="app_name">MapYou2.0</string>
+    <string name="app_name">MapYou</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="SERVER_REQUEST_URL">https</string>
     <string name="submit">submit</string>
     <string name="action_settings">Settings</string>
+    <integer name="com_vk_sdk_AppId">6016334</integer>
 </resources>

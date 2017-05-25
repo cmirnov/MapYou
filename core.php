@@ -4,22 +4,22 @@ include_once "config.php";
 
 class DB
 {
-    private $db_handler = NULL;
-    private $db_type = "mysql";
+    private $dbHandler = NULL;
+    private $dbType = "mysql";
 
     public function __construct($host, $user, $pass, $name, $charset)
     {
-        $dsn = '' . $this->db_type . ':host=' . $host . ';dbname=' . $name . ';charset=' . $charset;
+        $dsn = '' . $this->dbType . ':host=' . $host . ';dbname=' . $name . ';charset=' . $charset;
         try
         {
-            $this->db_handler = new PDO($dsn, $user, $pass);
+            $this->dbHandler = new PDO($dsn, $user, $pass);
         }
         catch (PDOException $e)
         {
-            $this->db_handler = NULL;
-            throw new Exception('Cant connect to db');
+            $this->dbHandler = NULL;
+            throw new Exception("Couldn't connect to db");
         }
-        return $this->db_handler;
+        return $this->dbHandler;
     }
 
     public function __destruct()
@@ -29,32 +29,32 @@ class DB
 
     public function Query($q)
     {
-        return $this->db_handler->query($q);
+        return $this->dbHandler->query($q);
     }
 
     public function Exec($q)
     {
-        return $this->db_handler->exec($q);
+        return $this->dbHandler->exec($q);
     }
 
-    public function FetchRow(PDOStatement $query_handler)
+    public function FetchRow(PDOStatement $queryHandler)
     {
-        return $query_handler->fetch(PDO::FETCH_NUM);
+        return $queryHandler->fetch(PDO::FETCH_NUM);
     }
 
-    public function FetchAssoc(PDOStatement $query_handler)
+    public function FetchAssoc(PDOStatement $queryHandler)
     {
-        return $query_handler->fetch(PDO::FETCH_ASSOC);
+        return $queryHandler->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function NumRows(PDOStatement $query_handler)
+    public function NumRows(PDOStatement $queryHandler)
     {
-        return $query_handler->rowCount();
+        return $queryHandler->rowCount();
     }
 
     public function Close()
     {
-        $this->db_handler = NULL;
+        $this->dbHandler = NULL;
     }
 }
 
@@ -80,6 +80,11 @@ class Point
     {
         return $this->longitude;
     }
+
+    public function GetSqlObject()
+    {
+        return "Point(" . $this->latitude . " " . $this->longitude . ")";
+    }
 }
 
 
@@ -90,15 +95,22 @@ class User
 
     private $exist = false;
 
-    private $latitude = "";
-
-    private $longitude = "";
+    private $geoPosition = null;
 
     public function __construct($id, Point $geoPosition)
     {
         $this->id = $id;
-        $this->latitude = $geoPosition->GetLatitude();
-        $this->longitude = $geoPosition->GetLongitude();
+        $this->geoPosition = $geoPosition;
+    }
+
+    public  function GetId()
+    {
+        return $this->id;
+    }
+
+    public  function GetGeoPosition()
+    {
+        return $this->geoPosition;
     }
 
     public function Exist()
@@ -119,28 +131,106 @@ class User
         }
     }
 
+    static private function updateBuildingCounters(User $user)
+    {
+        global $_CONFIG;
+        $mysql = new DB($_CONFIG['db']['host'], $_CONFIG['db']['user'], $_CONFIG['db']['password'], $_CONFIG['db']['name'], $_CONFIG['db']['charset']);
+
+        $building = $mysql->FetchRow($mysql->Query("SELECT buildings.id, users.last_building FROM buildings, users WHERE Contains(buildings.points, GeomFromText('" . $user->geoPosition->GetSqlObject() . "')) AND users.id = '" . $user->GetId() . "'"));
+        $buildingId = $building[0];
+        $lastBuilding = $building[1];
+
+        //print_r($user->geoPosition->GetSqlObject() . " " . $buildingId);
+        if ($lastBuilding != $buildingId)
+            $mysql->Exec("UPDATE buildings SET current_load = current_load + 1 WHERE id = '" . $buildingId . "'");
+
+        $mysql->Close();
+
+        return $buildingId;
+    }
+
     public function Create()
     {
         global $_CONFIG;
         $mysql = new DB($_CONFIG['db']['host'], $_CONFIG['db']['user'], $_CONFIG['db']['password'], $_CONFIG['db']['name'], $_CONFIG['db']['charset']);
 
-        $mysql->Exec("INSERT INTO users (id, latitude, longitude) VALUES ('" . $this->id . "', '" . $this->latitude . "', '" . $this->longitude . "')");
+
+        $mysql->Exec("INSERT INTO users (id, last_building, position) VALUES ('" . $this->id . "', '', GeomFromText('" . $this->geoPosition->GetSqlObject() . "'))");
         $this->exist = true;
 
         $mysql->Close();
     }
 
-    public function UpdateGeoPostion()
+    public function UpdateGeoPosition()
     {
         if (!$this->Exist())
-            throw new Exception('User are not exist');
+            throw new Exception("User doesn't exist");
 
         global $_CONFIG;
         $mysql = new DB($_CONFIG['db']['host'], $_CONFIG['db']['user'], $_CONFIG['db']['password'], $_CONFIG['db']['name'], $_CONFIG['db']['charset']);
 
-        $mysql->Exec("UPDATE users SET latitude = '" . $this->latitude . "', longitude = '" . $this->longitude . "' WHERE id = '" . $this->id . "'");
+        $building = $mysql->FetchRow($mysql->Query("SELECT id FROM buildings WHERE Contains(buildings.points, GeomFromText('" . $this->geoPosition->GetSqlObject() . "'))"));
+        $currentBuildingId = $building[0];
+        //$lastBuilding = $building[1];
+
+        //if ($buildingId != $lastBuilding)
+        $mysql->Exec("UPDATE buildings SET current_load = GREATEST(current_load - 1, 0) WHERE id IN (SELECT last_building FROM users WHERE id = '" . $this-> id . "')");
+
+        $mysql->Exec("UPDATE users SET last_building = '" . $currentBuildingId . "' WHERE id = '" . $this->id . "'");
+
+        if (!empty($currentBuildingId))
+            $mysql->Exec("UPDATE buildings SET current_load = current_load + 1 WHERE id = '" . $currentBuildingId . "'");
+
+        //$mysql->Exec("UPDATE users SET position = GeomFromText('" . $this->geoPosition->GetSqlObject() . "') WHERE id = '" . $this->id . "'");
+
+
+
+        //self::updateBuildingCounters(new User($this->GetId(), $this->GetGeoPosition()))
 
         $mysql->Close();
+    }
+
+}
+
+
+abstract class RequestHandler
+{
+    static public function Listener($handler)
+    {
+        try
+        {
+            self::checkSecurity($_GET);
+            $handler($_GET);
+        }
+        catch (Exception $e)
+        {
+            print_r(makeResponse("error", $e->getMessage()));
+        }
+    }
+
+    static private function checkSecurity(array $requestFields)
+    {
+        global $_CONFIG;
+
+        if (!isset($requestFields['security']))
+            throw new Exception('Incorrect fields');
+
+
+        $hash = $requestFields['security'];
+        unset($requestFields['security']);
+
+        $fields = implode("", $requestFields);
+        if (sha1($fields . $_CONFIG["security"]["salt"]) != $hash)
+            throw new Exception('Validation failure ' . sha1($fields . $_CONFIG["security"]["salt"]));
+    }
+
+    static public function JsonResponse($status, $msg)
+    {
+        $response = array(
+            "status" => $status,
+            "message" => $msg
+        );
+        print_r(json_encode($response, true));
     }
 
 }
@@ -154,6 +244,14 @@ function makeResponse($status, $msg)
         "message" => $msg
     );
     return json_encode($response, true);
+}
+
+
+function sanitizeString($var)
+{
+    $var = htmlspecialchars($var, ENT_QUOTES);
+    $var = strip_tags($var);
+    return stripslashes($var);
 }
 
 ?>

@@ -1,0 +1,81 @@
+**************************
+Common API request format 
+
+
+domain/api/<method name>/?some_field1=<field1 value>&....&some_fieldN=<fieldN value>&security=<hash>
+--hash=SHA1(<method name> + <field1 value> + ... + <fieldN value> + SECRET_SALT)
+
+
+*************************
+
+
+1) update_geo_position 
+
+Client tells the server side your geo position, server can response "ok" or "error" 	  
+
+REQUEST:
+	1. id=<user id>
+	2. latitude=<X-axis>
+	3. longitude=<Y-axis>
+	Example:		
+	domain/api/update_geo_position/?id=a16d723geqf&latitude=59.856954&longitude=29.874587&security=<...>
+RESPONSE:
+	JSON encoded
+	1. status: ok | error
+	2. message: if need more details
+	Example:
+	{
+		"status"  : "ok",
+		"message" : ""
+	}	
+	{
+		"status"  : "error",
+		"message" : "overload db, sorry("
+	}
+
+2) get_buildings_at_polygon
+
+Client requires the load of buildings at some polygon, server returns set of buildings descriptions 
+
+REQUEST:
+	1. point1_latitude=<X-axis>
+	2. point1_longitude=<Y-axis>
+	3. point2_latitude=<X-axis>
+	4. point2_longitude=<Y-axis>
+	Example:		
+	domain/api/get_buildings_at_polygon/?point1_latitude=59.856954&point1_longitude=29.874587&point2_latitude=60.856912&point2_longitude=30.874586&security=<...>
+
+RESPONSE:
+	1. id - uniq identificator of build
+	2. current_load - сurrent building load
+	3. max_load - maximum building load
+	4. description of building by points
+	Example
+	JSON encoded
+	{
+		"status":"ok",
+		"message":[
+				{
+					"id":"6e3f3587d4e8ac929fd7559e27867eec17f306ff",
+					"current_load":"30",
+					"max_load":"50",
+					"points":[
+							{
+								"x":"59.880149",
+								"y":"29.825008"
+							},
+							{
+								"x":"59.880206",
+								"y":"29.825067"
+							},
+							{
+								"x":"59.880184",
+								"y":"29.825145"
+							}
+						]
+				}
+			]
+	}
+	
+ 
+

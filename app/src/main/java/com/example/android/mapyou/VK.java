@@ -1,6 +1,5 @@
 package com.example.android.mapyou;
 
-import android.app.Application;
 import android.content.Intent;
 import android.widget.Toast;
 

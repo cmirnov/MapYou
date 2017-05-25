@@ -1,15 +1,12 @@
 package com.example.android.mapyou;
 
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
-import com.example.android.mapyou20.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -34,7 +31,6 @@ import org.json.JSONObject;
 
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -74,8 +70,8 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
 
         setId();
         initListener();
-        new DreamBeforeDrawing().execute(0, 0);
-        new UpdateFriendDream().execute(0, 0);
+        new dreamBeforeDrawing().execute(0, 0);
+        new updateFriendDream().execute(0, 0);
     }
 
 
@@ -132,7 +128,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                 getMap().addPolygon(buildings.elementAt(i).getPolygon());
             }
         }
-        new DreamBeforeDrawing().execute(0, 0);
+        new dreamBeforeDrawing().execute(0, 0);
     }
 
     private void drawMarkers() {
@@ -151,7 +147,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         } catch (Exception e) {
             Log.v("", "");
         }
-        new UpdateFriendDream().execute(0, 0);
+        new updateFriendDream().execute(0, 0);
     }
 
     private void initCamera(Location location) {
@@ -199,9 +195,11 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                 }
 
             }
+
             @Override
             public void onError(VKError error) {
             }
+
             @Override
             public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
             }
@@ -231,7 +229,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         return false;
     }
 
-    private class DreamBeforeDrawing extends AsyncTask<Integer, Integer, Integer> {
+    private class dreamBeforeDrawing extends AsyncTask<Integer, Integer, Integer> {
 
         @Override
         protected Integer doInBackground(Integer... params) {
@@ -273,7 +271,7 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
         }
     }
 
-    private class UpdateFriendDream extends AsyncTask<Object, Object, Void> {
+    private class updateFriendDream extends AsyncTask<Object, Object, Void> {
 
         @Override
         protected Void doInBackground(Object... params) {
@@ -290,7 +288,8 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                         FutureTask<Vector<Friend>> futureTask = new FutureTask<Vector<Friend>>(callable);
                         ExecutorService executor = Executors.newFixedThreadPool(2);
                         executor.execute(futureTask);
-                        while (!futureTask.isDone()) {}
+                        while (!futureTask.isDone()) {
+                        }
                         try {
                             friends = futureTask.get();
                         } catch (InterruptedException e) {
@@ -300,10 +299,14 @@ public class MapFragment extends SupportMapFragment implements GoogleApiClient.C
                         }
                         return;
                     }
+
                     @Override
-                    public void onError(VKError error) { }
+                    public void onError(VKError error) {
+                    }
+
                     @Override
-                    public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) { }
+                    public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
+                    }
                 });
 
 

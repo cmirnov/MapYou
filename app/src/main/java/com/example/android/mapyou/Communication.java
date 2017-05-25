@@ -1,22 +1,9 @@
 package com.example.android.mapyou;
 
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.example.android.mapyou.Building;
-import com.example.android.mapyou20.R;
 import com.google.android.gms.maps.model.LatLng;
-import com.vk.sdk.VKAccessToken;
-import com.vk.sdk.api.VKApi;
-import com.vk.sdk.api.VKApiConst;
-import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKParameters;
-import com.vk.sdk.api.VKRequest;
-import com.vk.sdk.api.VKResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,18 +20,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Objects;
 import java.util.Vector;
-
-import static android.R.attr.bitmap;
-import static android.R.attr.documentLaunchMode;
-import static android.R.attr.id;
-import static android.R.attr.type;
-import static android.R.id.message;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-import static android.provider.Settings.Global.getString;
-import static com.vk.sdk.api.model.VKApiPhotoSize.P;
-import static java.lang.StrictMath.max;
 
 /**
  * Created by kirill on 30.03.17.
@@ -52,7 +28,7 @@ import static java.lang.StrictMath.max;
 
 public class Communication {
 
-    private String SERVER_REQUEST_URL =  "http://172.20.5.185:80/api/";//?id=a16d723&type=update_geo_position&latitude=59.856954&longitude=29.874587&security=sha1(id + )";
+    private String SERVER_REQUEST_URL = "http://92.42.30.155:8999/api/";//?id=a16d723&type=update_geo_position&latitude=59.856954&longitude=29.874587&security=sha1(id + )";
     private URL mUrl;
 
 
@@ -86,11 +62,10 @@ public class Communication {
         return;
     }
 
-
     public Vector<Building> getBuildings(LatLng point1, LatLng point2, int bufferSize) {
         try {
-            String url = creategetBuildingsAtPolygon(point1, point2);
-             mUrl = new URL(url);//"http://92.42.30.155:8999/?method=get_buildings_at_polygon&point1_latitude=59.856954&point1_longitude=29.874587&point2_latitude=60.856912&point2_longitude=30.874586&security=ccbbf97c56701d56777b0ae2684857eedbd48585");
+            String url = createGetBuildingsAtPolygon(point1, point2);
+            mUrl = new URL(url);//"http://92.42.30.155:8999/?method=get_buildings_at_polygon&point1_latitude=59.856954&point1_longitude=29.874587&point2_latitude=60.856912&point2_longitude=30.874586&security=ccbbf97c56701d56777b0ae2684857eedbd48585");
         } catch (MalformedURLException e) {
             Log.v("ERROR", "Incorrect URL test1");
             e.printStackTrace();
@@ -100,7 +75,6 @@ public class Communication {
         Log.v("output", data);
         return extractBuildingsFromJSON(data);
     }
-
 
     private String makeHttpsRequest(URL url) {
         String jsonResponse = "";
@@ -153,11 +127,10 @@ public class Communication {
         return output.toString();
     }
 
-
     private Vector<Building> extractBuildingsFromJSON(String data) {
         try {
             JSONObject message = new JSONObject(data);
-            JSONArray baseJsonArray =  message.getJSONArray("message");
+            JSONArray baseJsonArray = message.getJSONArray("message");
             Vector<Building> result = new Vector<>();
             for (int i = 0; i < baseJsonArray.length(); ++i) {
                 JSONObject tempObj = baseJsonArray.getJSONObject(i);
@@ -183,7 +156,7 @@ public class Communication {
     }
 
     private String makeSHA1Hash(String input)
-        throws NoSuchAlgorithmException, UnsupportedEncodingException {
+            throws NoSuchAlgorithmException, UnsupportedEncodingException {
         input += "$!ASD($@%!";
         MessageDigest md = MessageDigest.getInstance("SHA1");
         md.reset();
@@ -193,7 +166,7 @@ public class Communication {
 
         String hexStr = "";
         for (int i = 0; i < digest.length; i++) {
-            hexStr +=  Integer.toString( ( digest[i] & 0xff ) + 0x100, 16).substring( 1 );
+            hexStr += Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1);
         }
         return hexStr;
     }
@@ -245,6 +218,7 @@ public class Communication {
         }
         return url;
     }
+
     private String createUpdateLocationUrl(Location location, long id) {
         String url = SERVER_REQUEST_URL;
         url += "update_geo_position/?";
@@ -268,7 +242,7 @@ public class Communication {
         return url;
     }
 
-    private String creategetBuildingsAtPolygon(LatLng point1, LatLng point2) {
+    private String createGetBuildingsAtPolygon(LatLng point1, LatLng point2) {
         String url = SERVER_REQUEST_URL;
         url += "get_buildings_at_polygon/";
         url += "?";

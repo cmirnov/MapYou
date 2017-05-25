@@ -1,29 +1,21 @@
 package com.example.android.mapyou;
 
 import android.Manifest;
-import android.app.Application;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.util.Log;
-import android.view.View;
+import android.provider.Settings.Secure;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.EditText;
+import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.provider.Settings.Secure;
 
 import com.example.android.mapyou20.R;
 import com.vk.sdk.VKScope;
@@ -38,9 +30,6 @@ import com.vk.sdk.api.VKResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static android.R.attr.button;
-import static java.security.AccessController.getContext;
 
 
 public class MainActivity extends AppCompatActivity
@@ -59,19 +48,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //Log.v("hash", make)
         setContentView(R.layout.activity_main);
         String id = Secure.ANDROID_ID;
         Log.v("id", id);
         VKSdk.login(this, sMyScope);
 
-         //String android_id = Settings.Secure.getString(getContext().getContentResolver(),
-           //Settings.Secure.ANDROID_ID);
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -105,17 +88,17 @@ public class MainActivity extends AppCompatActivity
                 }
 
             }
+
             @Override
             public void onError(VKError error) {
             }
+
             @Override
             public void attemptFailed(VKRequest request, int attemptNumber, int totalAttempts) {
             }
         });
         return;
     }
-
-
 
 
     private void getPermission() {

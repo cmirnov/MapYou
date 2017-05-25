@@ -31,17 +31,25 @@ public class Building {
         mPolygon.addAll(mPoints);
         mPolygon.fillColor((20 << 18) | getColor());
         mPolygon.strokeColor((20 << 18) | getColor());
-        mPolygon.strokeWidth( 10 );
+        mPolygon.strokeWidth(10);
     }
 
     private int getColor() {
         int proportion = (int) Math.ceil(10 * mNumOfUsers / mMaxNumOfUsers);
         switch (proportion) {
-            case 0 :case 1:case 2:case 3:
+            case 0:
+            case 1:
+            case 2:
+            case 3:
                 return Color.GREEN;
-            case 4:case 5:case 6:case 7:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
                 return Color.YELLOW;
-            case 8:case 9:case 10:
+            case 8:
+            case 9:
+            case 10:
                 return Color.RED;
             default:
                 return Color.BLACK;
